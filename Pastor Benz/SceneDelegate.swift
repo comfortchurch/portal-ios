@@ -24,6 +24,16 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Configure Hotwire
         Hotwire.config.debugLoggingEnabled = true
         Hotwire.config.applicationUserAgentPrefix = "ComfortChurchApp-iOS; App Version \(appVersion);"
+        
+        // Use custom navigation controller with hidden navigation bar
+        Hotwire.config.defaultNavigationController = {
+            HotwireNavigationController()
+        }
+        
+        // Use custom view controller
+        Hotwire.config.defaultViewController = { url in
+            CustomWebViewController(url: url)
+        }
 
         // Register bridge components
         Hotwire.registerBridgeComponents([

@@ -29,22 +29,38 @@ final class NotificationBridgeComponent: BridgeComponent {
                     if let error = error {
                         print("⚠️ NotificationBridgeComponent: FCM token error - \(error)")
                     }
-                    try? await self.reply(to: "connect", with: [
+                    let payload: [String: Any] = [
                         "token": token ?? "",
                         "hasPermission": hasPermission
-                    ])
+                    ]
+                    if let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+                       let jsonString = String(data: jsonData, encoding: .utf8) {
+                        do {
+                            try await self.reply(to: "connect", with: jsonString)
+                        } catch {
+                            print("⚠️ NotificationBridgeComponent: reply error - \(error)")
+                        }
+                    }
                 }
             }
         }
     }
-
+    
     private func requestNotificationPermission(message: Message) {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
             Task { @MainActor in
                 if let error = error {
                     print("⚠️ NotificationBridgeComponent: Error requesting permission - \(error)")
                 }
-                try? await self.reply(to: "requestPermission", with: ["granted": granted])
+                let payload: [String: Any] = ["granted": granted]
+                if let jsonData = try? JSONSerialization.data(withJSONObject: payload),
+                   let jsonString = String(data: jsonData, encoding: .utf8) {
+                    do {
+                        try await self.reply(to: "requestPermission", with: jsonString)
+                    } catch {
+                        print("⚠️ NotificationBridgeComponent: reply error - \(error)")
+                    }
+                }
             }
         }
     }

@@ -7,15 +7,17 @@
 import UIKit
 import FirebaseCore
 import FirebaseMessaging
+import UserNotifications
 
 @main
-class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate, UNUserNotificationCenterDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         FirebaseApp.configure()
         Messaging.messaging().delegate = self
+        UNUserNotificationCenter.current().delegate = self
         application.registerForRemoteNotifications()
         return true
     }
@@ -35,5 +37,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate, MessagingDelegate {
             object: nil,
             userInfo: ["token": token]
         )
+    }
+
+    // Show notifications when app is in foreground
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .badge])
+    }
+
+    // Handle notification tap
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        didReceive response: UNNotificationResponse,
+        withCompletionHandler completionHandler: @escaping () -> Void
+    ) {
+        let userInfo = response.notification.request.content.userInfo
+        if let link = userInfo["link"] as? String, let url = URL(string: link) {
+            NotificationCenter.default.post(
+                name: Notification.Name("NotificationTapped"),
+                object: nil,
+                userInfo: ["url": url]
+            )
+        }
+        completionHandler()
     }
 }

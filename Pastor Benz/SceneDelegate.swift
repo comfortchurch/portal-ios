@@ -24,12 +24,12 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Configure Hotwire
         Hotwire.config.debugLoggingEnabled = true
         Hotwire.config.applicationUserAgentPrefix = "ComfortChurchApp-iOS; App Version \(appVersion);"
-        
+
         // Use custom navigation controller with hidden navigation bar
         Hotwire.config.defaultNavigationController = {
             HotwireNavigationController()
         }
-        
+
         // Use custom view controller
         Hotwire.config.defaultViewController = { url in
             CustomWebViewController(url: url)
@@ -52,6 +52,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
 
         navigator.start()
+
+        // Listen for notification taps to navigate
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleNotificationTap(_:)),
+            name: Notification.Name("NotificationTapped"),
+            object: nil
+        )
+    }
+
+    @objc private func handleNotificationTap(_ notification: Notification) {
+        if let url = notification.userInfo?["url"] as? URL {
+            navigator.route(url)
+        }
     }
 
     private var appVersion: String {
